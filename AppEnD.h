@@ -1,7 +1,7 @@
 /*******     File:    AppEnD.h
  *******   Author:    Joshua Welch
- *******     Date:    11/25/14
- *******  Purpose:    This program takes FASTQ, SAM or BAM input and identifies
+ *******     Date:    6/9/15
+ *******  Purpose:    This program takes indexed BAM input and identifies
  *******  untemplated 3' RNA additions.
  *******/
 
@@ -33,7 +33,6 @@ public:
 	bool output_reads;			//Output read sequences?
 	bool output_read_ids;		//Output read IDs?
 	bool output_tail_seqs;		//Output tail sequences?
-	bool output_mRNA_pos;		//Output tail mRNA positions?
 	bool output_tail_comp;		//Output tail nucleotide compositions?
 	bool output_linker;			//Output identified linker sequence?
 	int min_linker_match;		//Number of nucleotides of linker required (used only if exact linker match required)
@@ -45,40 +44,6 @@ public:
 	string gene_file;			//Gene/transcript annotation file in GTF format
 	Parameters();
 	Parameters(string param_file);
-};
-
-class Transcript
-{
-public:
-	string id;											//Transcript ID
-	string gene_id;										//Gene ID (if any)
-	string chr;											//Transcript chromosome
-	vector<int> exon_starts;							//Exon start positions (1-based)
-	vector<int> exon_ends;								//Exon end positions (1-based)
-	Transcript();
-	Transcript(string gtf_line);						
-	int exon_ind(string chr, int start);				//Returns index of transcript exon containing position; -1 if no such exon
-	int exon_ind(string chr, int start, int end);		//Returns index of transcript exon containing interval; -1 if no such exon
-	bool overlaps(string chr, int start);				//Does position overlap transcript?
-	bool overlaps(string chr, int start, int end);		//Does interval overlap transcript?
-	bool overlaps(Transcript t);						//Does transcript t overlap transcript?
-	bool comes_before(string chr, int start);			//Does position come before transcript in the genome?
-	bool comes_before(string chr, int start, int end);	//Does interval come before transcript in the genome?
-	bool comes_before(Transcript t);					//Does transcript t come before transcript in the genome?
-	bool comes_after(string chr, int start);			//Does position come after transcript in the genome?
-	bool comes_after(string chr, int start, int end);	//Does position come after transcript in the genome?
-	bool comes_after(Transcript t);						//Does transcript t come after transcript in the genome?
-	int mRNA_position(string chr, int start, bool three_p);	//Converts from genome coordinates to transcript coordinates
-};
-
-class Transcriptome
-{
-private:
-	vector<Transcript> transcripts;
-public:
-	Transcriptome();
-	Transcriptome(const Parameters & params);
-	void find_transcripts(string chr, int start, vector<Transcript> & transcripts) const;
 };
 
 class Tail
@@ -98,10 +63,8 @@ public:
 	double T_pct;
 	bool misprime;
 	vector<int> mRNA_pos;
-	vector<Transcript> transcripts;
 	Tail();
 	Tail(const Parameters & params, const BamAlignment & al, map<int,string> & chr_ids);
-	void find_transcripts(const Transcriptome & annotations);
 	friend ostream & operator << (ostream & out, const Tail & tail);
 private:
 	Parameters params;

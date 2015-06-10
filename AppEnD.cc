@@ -57,10 +57,6 @@ int main (int argc, char* argv[])
 		  {
 			  writer.SaveAlignment(al);
 			  Tail tail(params,al,chr_ids);
-			  if (params.output_mRNA_pos)
-				{
-					tail.find_transcripts(annotations);
-				}	
 			  fout << tail;
 			  if (tail.chr != "")
 			  {
@@ -93,10 +89,6 @@ void write_header(Parameters params, ostream & out)
 		out << "Read ID\t";
 	if (params.output_reads)
 		out << "Read\t";
-	if (params.output_mRNA_pos)
-	{
-		out << "Transcript\tmRNA Position\t";
-	}
 	if (params.output_tail_seqs)
 	{
 		out << "Tail\t";
@@ -105,11 +97,6 @@ void write_header(Parameters params, ostream & out)
 	if (params.output_linker)
 	{
 		out << "Linker\t";
-		cout << "Outputting linker" << endl;
-	}
-	else
-	{
-		cout << "Not outputting linker" << endl;
 	}
 	if (params.output_tail_comp)
 	{
@@ -191,11 +178,6 @@ bool atob (const string & a)
 	return (a == "true" || a == "1");
 }
 
-void convert_to_indexed_bam(Parameters & params)
-{
-	
-}
-
 /******************************************
 ****** Parameters member functions ********
 *******************************************/
@@ -212,7 +194,6 @@ Parameters::Parameters()
 	output_reads = true;
 	output_read_ids = true;
 	output_tail_seqs = true;
-	output_mRNA_pos = true;
 	output_tail_comp = true;
 	min_linker_match = 0;
 	min_tail_len = 0;
@@ -275,10 +256,6 @@ Parameters::Parameters(string param_file)
 
 	getline(fin, line);
 	tab_pos = line.find("\t");
-	output_mRNA_pos = atob(line.substr(tab_pos+1,line.length()-tab_pos-1));
-
-	getline(fin, line);
-	tab_pos = line.find("\t");
 	output_tail_comp = atob(line.substr(tab_pos+1,line.length()-tab_pos-1));
 
 	getline(fin, line);
@@ -308,86 +285,6 @@ Parameters::Parameters(string param_file)
 	getline(fin, line);
 	tab_pos = line.find("\t");
 	input_file = line.substr(tab_pos+1,line.length()-tab_pos-1);
-
-	//getline(fin, line);
-	//tab_pos = line.find("\t");
-	//gene_file = line.substr(tab_pos+1,line.length()-tab_pos-1);
-}
-
-/******************************************
-****** Transcript member functions ********
-*******************************************/
-
-Transcript::Transcript()
-{
-}
-
-Transcript::Transcript(string gtf_line)
-{
-}
-
-int Transcript::exon_ind(string chr, int start)
-{
-}
-
-int Transcript::exon_ind(string chr, int start, int end)
-{
-}
-	
-bool Transcript::overlaps(string chr, int start)
-{
-}
-	
-bool Transcript::overlaps(string chr, int start, int end)
-{
-}
-	
-bool Transcript::overlaps(Transcript t)
-{
-}
-	
-bool Transcript::comes_before(string chr, int start)
-{
-}
-	
-bool Transcript::comes_before(string chr, int start, int end)
-{
-}
-	
-bool Transcript::comes_before(Transcript t)
-{
-}
-	
-bool Transcript::comes_after(string chr, int start)
-{
-}
-	
-bool Transcript::comes_after(string chr, int start, int end)
-{
-}
-	
-bool Transcript::comes_after(Transcript t)
-{
-}
-	
-int Transcript::mRNA_position(string chr, int start, bool three_p)
-{
-}
-
-/******************************************
-***** Transcriptome member functions ******
-*******************************************/
-
-Transcriptome::Transcriptome()
-{
-}
-	
-Transcriptome::Transcriptome(const Parameters & params)
-{
-}
-	
-void Transcriptome::find_transcripts(string chr, int start, vector<Transcript> & transcripts) const
-{
 }
 
 /******************************************
@@ -460,9 +357,6 @@ void Tail::get_tail(const BamAlignment & al)
 	  if (params.min_linker_match > 0){
 		string exact_linker_stub = linker.substr(linker.length()-params.min_linker_match,params.min_linker_match);
 		int linker_pos = clip.rfind(exact_linker_stub);
-		//cout << "read: " << read << endl;
-		//cout << "clip: " << clip << endl;
-		//cout << "link: " << linker_pos << endl;
 		if (linker_pos == -1) 
 		{
 			chr = "";
@@ -536,11 +430,10 @@ string Tail::get_clip(const BamAlignment & al)
 void Tail::get_tail_start(const BamAlignment & al, const string & clip)
 {
 	bool look_start = look_at_start(al);
-	start = al.Position; //Note: BamTools claims to use 0-based coords, but empirically, they're 1-based
+	start = al.Position; //Note: BamTools uses 0-based coords
 
 	//Need to take indels into account when computing tail start pos in this case:
-	if ( ( look_start && !al.IsReverseStrand() ) || 
-		 ( !look_start && al.IsReverseStrand() ) )	
+	if ( !look_start )	
 	{
 		vector<CigarOp> cigar_ops;
 		cigar_ops = al.CigarData;
@@ -556,6 +449,10 @@ void Tail::get_tail_start(const BamAlignment & al, const string & clip)
 			}
 		}
 		start += read.length() - clip.length();
+	}
+	else
+	{
+	  ++start;
 	}
 }
 
@@ -774,26 +671,16 @@ void Tail::compute_tail_comp()
 	T_pct *= 100;
 }
 
-void Tail::find_transcripts(const Transcriptome & annotations)
-{
-}
-
 ostream & operator << (ostream & out, const Tail & tail)
 {
 	Parameters params = tail.params;
 	if (tail.chr == "")	//No tail position called; do not output
 		return out;
 	int num_lines = 1;
-	if (tail.mRNA_pos.size() > 0)
-	{
-		num_lines = tail.mRNA_pos.size();
-	}
 	for (int i = 0; i < num_lines; ++i)
 	{
 		out << tail.read_id << "\t"
 			<< tail.read << "\t";
-		if (num_lines > 1 && params.output_mRNA_pos)
-			out << tail.transcripts[i].id << "\t" << tail.mRNA_pos[i] << "\t";
 		if (params.output_tail_seqs)
 		{
 			out << tail.sequence << "\t";
