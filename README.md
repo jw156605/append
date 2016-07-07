@@ -1,4 +1,5 @@
-Installation Instructions:
+## Installation
+
 - Navigate to desired installation directory
 - Download the latest version of AppEnD
 - Enter the AppEnD directory
@@ -6,15 +7,17 @@ Installation Instructions:
 - Build from source
 
 The sequence of commands to do this is:
+```
 git clone https://jwelch%40cs.unc.edu@code.google.com/p/append/
 cd append/
 git clone git://github.com/pezmaster31/bamtools.git
 make
+```
 
 Note: The above installation process requires that git and cmake be installed on your machine. These can
 be obtained from http://git-scm.com/downloads and http://www.cmake.org/download/http://www.cmake.org/download/
 
-Usage Instructions:
+## Usage
 The AppEnD tool identifies untemplated 3' additions in RNA-seq reads. AppEnD can accurately process many 
 different types of sequencing data, provided that the expected position of the untemplated addition within
 the read is accurately specified in a parameter file. Sample parameter files are provided for processing 
@@ -25,4 +28,6 @@ using an aligner that performs soft clipping. For example, MapSplice, TopHat, ST
 --local mode) can all perform soft clipping. 
 
 To run AppEnD, simply type:
+```
 ./AppEnD <parameter file>
+```
