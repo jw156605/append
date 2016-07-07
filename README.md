@@ -15,7 +15,7 @@ make
 ```
 
 Note: The above installation process requires that git and cmake be installed on your machine. These can
-be obtained from http://git-scm.com/downloads and http://www.cmake.org/download/http://www.cmake.org/download/
+be obtained from http://git-scm.com/downloads and http://www.cmake.org/download/
 
 ## Usage
 The AppEnD tool identifies untemplated 3' additions in RNA-seq reads. AppEnD can accurately process many 
