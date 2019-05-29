@@ -8,9 +8,9 @@
 
 The sequence of commands to do this is:
 ```
-git clone https://jwelch%40cs.unc.edu@code.google.com/p/append/
+git clone https://github.com/jw156605/append
 cd append/
-git clone git://github.com/pezmaster31/bamtools.git
+git clone --depth 1 --branch v2.5.1 git://github.com/pezmaster31/bamtools.git
 make
 ```
 
@@ -29,5 +29,5 @@ using an aligner that performs soft clipping. For example, MapSplice, TopHat, ST
 
 To run AppEnD, simply type:
 ```
-./AppEnD <parameter file>
+./AppEnD parameter_file bam_file
 ```
